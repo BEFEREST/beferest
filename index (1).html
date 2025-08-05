@@ -1,0 +1,63 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polygon Contract Logs Viewer</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container py-5">
+    <h2 class="mb-4 text-center">Polygon Contract Logs Viewer (PolygonScan API)</h2>
+    <div class="mb-4">
+      <input type="text" id="contractAddress" class="form-control" placeholder="Enter Contract Address">
+      <button id="fetchButton" class="btn btn-primary mt-3">Get Logs</button>
+    </div>
+    <div class="mt-5">
+      <h4>Recent Events</h4>
+      <table class="table table-striped" id="logsTable">
+        <thead>
+          <tr>
+            <th>Tx Hash</th>
+            <th>Event Signature</th>
+            <th>Block Number</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will populate here -->
+        </tbody>
+      </table>
+    </div>
+  </div>  <script>
+    async function fetchLogs() {
+      const contractAddress = document.getElementById('contractAddress').value.trim();
+      if (!contractAddress) {
+        alert('Please enter a contract address.');
+        return;
+      }
+
+      const url = `https://api.polygonscan.com/api?module=logs&action=getLogs&fromBlock=latest&toBlock=latest&address=${contractAddress}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      console.log(data);
+
+      const tbody = document.querySelector('#logsTable tbody');
+      tbody.innerHTML = '';
+
+      if (!data.result || data.result.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center">No logs found for this contract.</td></tr>';
+        return;
+      }
+
+      data.result.forEach(log => {
+        const row = `<tr>
+          <td><a href="https://polygonscan.com/tx/${log.transactionHash}" target="_blank">${log.transactionHash.slice(0, 12)}...</a></td>
+          <td>${log.topics[0]}</td>
+          <td>${parseInt(log.blockNumber, 16)}</td>
+        </tr>`;
+        tbody.insertAdjacentHTML('beforeend', row);
+      });
+    }
+
+    document.getElementById('fetchButton').addEventListener('click', fetchLogs);
+  </script></body>
+</html>
